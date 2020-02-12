@@ -62,12 +62,12 @@ def main():
                                                batch_size=config.batch_size,
                                                sampler=train_sampler,
                                                num_workers=config.workers,
-                                               pin_memory=True)
+                                               pin_memory=False)
     valid_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=config.batch_size,
                                                sampler=valid_sampler,
                                                num_workers=config.workers,
-                                               pin_memory=True)
+                                               pin_memory=False)
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         w_optim, config.epochs, eta_min=config.w_lr_min)
     architect = Architect(model, config.w_momentum, config.w_weight_decay)
@@ -157,6 +157,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         writer.add_scalar('train/top1', prec1.item(), cur_step)
         writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
+        # print("curent step: %d", cur_step)
 
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
