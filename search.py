@@ -10,6 +10,7 @@ from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
 
+os.environ["CUDA_VISIBLE_DEVICES"] = '1'
 
 config = SearchConfig()
 
@@ -74,6 +75,7 @@ def main():
 
     # training loop
     best_top1 = 0.
+    best_epoch = 0
     for epoch in range(config.epochs):
         lr_scheduler.step()
         lr = lr_scheduler.get_lr()[0]
@@ -86,6 +88,7 @@ def main():
         # validation
         cur_step = (epoch+1) * len(train_loader)
         top1 = validate(valid_loader, model, epoch, cur_step)
+        # top1 = 0.0
 
         # log
         # genotype
@@ -103,11 +106,12 @@ def main():
             best_top1 = top1
             best_genotype = genotype
             is_best = True
+            best_epoch = epoch+1
         else:
             is_best = False
         utils.save_checkpoint(model, config.path, is_best)
         print("")
-
+    logger.info("Best Genotype at {} epch.".format(best_epoch))
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
 
