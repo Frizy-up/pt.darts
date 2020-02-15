@@ -114,3 +114,29 @@ def save_checkpoint(state, ckpt_dir, is_best=False):
     if is_best:
         best_filename = os.path.join(ckpt_dir, 'best.pth.tar')
         shutil.copyfile(filename, best_filename)
+
+
+def save_state_dict(state, dir, extra='model', is_best=False, parallel=False, epoch=None, acc=None, last_state=False):
+    filename = os.path.join(dir, ('{}_checkpoint.pth'.format(extra)))
+    if not parallel:
+        torch.save(state.state_dict(), filename)
+    else:
+        torch.save(state.module.state_dict(), filename)
+
+    if is_best:
+        best_filename = os.path.join(dir, ('best_{}_checkpoint.pth'.format(extra)))
+        shutil.copyfile(filename, best_filename)
+
+    if last_state:
+        best_filename = os.path.join(dir, ('best_{}_checkpoint.pth'.format(extra)))
+        last_state_filename = os.path.join(dir, ('best_{}_{}_{}_checkpoint.pth'.format(extra, epoch, acc)))
+        shutil.copyfile(best_filename, last_state_filename)
+
+
+
+def load_state_dict(state, dir, extra='model', parallel=False):
+    best_filename = os.path.join(dir, ('best_{}_checkpoint.pth'.format(extra)))
+    if not parallel:
+        state.load_state_dict(torch.load(best_filename))
+    else:
+        state.module.load_state_dict(torch.load(best_filename))

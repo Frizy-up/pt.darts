@@ -57,11 +57,14 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--epochs', type=int, default=50, help='# of training epochs')
         parser.add_argument('--init_channels', type=int, default=16)
         parser.add_argument('--layers', type=int, default=8, help='# of layers')
-        parser.add_argument('--seed', type=int, default=2, help='random seed')
+        parser.add_argument('--seed', type=int, default=1, help='random seed')
         parser.add_argument('--workers', type=int, default=4, help='# of workers')
         parser.add_argument('--alpha_lr', type=float, default=3e-4, help='lr for alpha')
         parser.add_argument('--alpha_weight_decay', type=float, default=1e-3,
                             help='weight decay for alpha')
+        parser.add_argument('--restore', type=bool, default=False, help='restore from last time')
+        parser.add_argument('--epoch_restore', type=int, default=0, help='restore epoch from last time')
+        parser.add_argument('--model_only', type=bool, default=True, help='only estore model from last time')
 
         return parser
 

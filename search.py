@@ -74,9 +74,19 @@ def main():
     architect = Architect(model, config.w_momentum, config.w_weight_decay)
 
     # training loop
-    best_top1 = 0.
+    best_top1 = -1.0
     best_epoch = 0
-    for epoch in range(config.epochs):
+    ################################ restore from last time #############################################
+    epoch_restore = config.epoch_restore
+    if config.restore:
+        utils.load_state_dict(model, config.path, extra='model', parallel=(len(config.gpus) > 1))
+        if not config.model_only:
+            utils.load_state_dict(w_optim, config.path, extra='w_optim', parallel=False)
+            utils.load_state_dict(alpha_optim, config.path, extra='alpha_optim', parallel=False)
+            utils.load_state_dict(lr_scheduler, config.path, extra='lr_scheduler', parallel=False)
+            utils.load_state_dict(epoch_restore, config.path, extra='epoch_restore', parallel=False)
+    #####################################################################################################
+    for epoch in range(epoch_restore, config.epochs):
         lr_scheduler.step()
         lr = lr_scheduler.get_lr()[0]
 
@@ -110,6 +120,17 @@ def main():
         else:
             is_best = False
         utils.save_checkpoint(model, config.path, is_best)
+
+        ######################################## save all state ###################################################
+        utils.save_state_dict(model, config.path, extra='model', is_best=is_best, parallel=(len(config.gpus)>1),
+                              epoch=epoch + 1, acc=top1, last_state=((epoch+1)>=config.epochs))
+        utils.save_state_dict(lr_scheduler, config.path, extra='lr_scheduler', is_best=is_best, parallel=False,
+                              epoch=epoch + 1, acc=top1, last_state=((epoch + 1) >= config.epochs))
+        utils.save_state_dict(alpha_optim, config.path, extra='alpha_optim', is_best=is_best, parallel=False,
+                              epoch=epoch + 1, acc=top1, last_state=((epoch + 1) >= config.epochs))
+        utils.save_state_dict(w_optim, config.path, extra='w_optim', is_best=is_best, parallel=False,
+                              epoch=epoch + 1, acc=top1, last_state=((epoch + 1) >= config.epochs))
+        ############################################################################################################
         print("")
     logger.info("Best Genotype at {} epch.".format(best_epoch))
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
